@@ -6,56 +6,57 @@ USER vscode
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - 
 RUN sudo apt-get update && sudo apt-get install -qq -y nodejs && sudo npm install -g @bazel/bazelisk
 
-# install cgo-related dependencies
+# install go-related dependencies
 # from https://github.com/docker-library/golang/blob/master/1.19/buster/Dockerfile (edited to use sudo)
+# install cgo-related dependencies
 RUN set -eux; \
-	sudo apt-get update; \
-	sudo apt-get install -y --no-install-recommends \
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
 		g++ \
 		gcc \
 		libc6-dev \
 		make \
 		pkg-config \
 	; \
-	sudo rm -rf /var/lib/apt/lists/*
+	rm -rf /var/lib/apt/lists/*
 
 ENV PATH /usr/local/go/bin:$PATH
 
-ENV GOLANG_VERSION 1.19.4
+ENV GOLANG_VERSION 1.20.3
 
 RUN set -eux; \
 	arch="$(dpkg --print-architecture)"; arch="${arch##*-}"; \
 	url=; \
 	case "$arch" in \
 		'amd64') \
-			url='https://dl.google.com/go/go1.19.4.linux-amd64.tar.gz'; \
-			sha256='c9c08f783325c4cf840a94333159cc937f05f75d36a8b307951d5bd959cf2ab8'; \
+			url='https://dl.google.com/go/go1.20.3.linux-amd64.tar.gz'; \
+			sha256='979694c2c25c735755bf26f4f45e19e64e4811d661dd07b8c010f7a8e18adfca'; \
 			;; \
 		'armel') \
 			export GOARCH='arm' GOARM='5' GOOS='linux'; \
 			;; \
 		'armhf') \
-			url='https://dl.google.com/go/go1.19.4.linux-armv6l.tar.gz'; \
-			sha256='7a51dae4f3a52d2dfeaf59367cc0b8a296deddc87e95aa619bf87d24661d2370'; \
+			url='https://dl.google.com/go/go1.20.3.linux-armv6l.tar.gz'; \
+			sha256='b421e90469a83671641f81b6e20df6500f033e9523e89cbe7b7223704dd1035c'; \
 			;; \
 		'arm64') \
-			url='https://dl.google.com/go/go1.19.4.linux-arm64.tar.gz'; \
-			sha256='9df122d6baf6f2275270306b92af3b09d7973fb1259257e284dba33c0db14f1b'; \
+			url='https://dl.google.com/go/go1.20.3.linux-arm64.tar.gz'; \
+			sha256='eb186529f13f901e7a2c4438a05c2cd90d74706aaa0a888469b2a4a617b6ee54'; \
 			;; \
 		'i386') \
-			url='https://dl.google.com/go/go1.19.4.linux-386.tar.gz'; \
-			sha256='e5f0b0551e120bf3d1246cb960ec58032d7ca69e1adcf0fdb91c07da620e0c61'; \
+			url='https://dl.google.com/go/go1.20.3.linux-386.tar.gz'; \
+			sha256='e12384311403f1389d14cc1c1295bfb4e0dd5ab919403b80da429f671a223507'; \
 			;; \
 		'mips64el') \
 			export GOARCH='mips64le' GOOS='linux'; \
 			;; \
 		'ppc64el') \
-			url='https://dl.google.com/go/go1.19.4.linux-ppc64le.tar.gz'; \
-			sha256='fbc6c7d1d169bbdc82223d861d2fadc6add01c126533d3efbba3fdca9b362035'; \
+			url='https://dl.google.com/go/go1.20.3.linux-ppc64le.tar.gz'; \
+			sha256='943c89aa1624ea544a022b31e3d6e16a037200e436370bdd5fd67f3fa60be282'; \
 			;; \
 		's390x') \
-			url='https://dl.google.com/go/go1.19.4.linux-s390x.tar.gz'; \
-			sha256='4b8d25acbdca8010c31ea8c5fd4aba93471ff6ada7a8b4fb04b935baee873dc8'; \
+			url='https://dl.google.com/go/go1.20.3.linux-s390x.tar.gz'; \
+			sha256='126cf823a5634ef2544b866db107b9d351d3ea70d9e240b0bdcfb46f4dcae54b'; \
 			;; \
 		*) echo >&2 "error: unsupported architecture '$arch' (likely packaging update needed)"; exit 1 ;; \
 	esac; \
@@ -63,15 +64,15 @@ RUN set -eux; \
 	if [ -z "$url" ]; then \
 # https://github.com/golang/go/issues/38536#issuecomment-616897960
 		build=1; \
-		url='https://dl.google.com/go/go1.19.4.src.tar.gz'; \
-		sha256='eda74db4ac494800a3e66ee784e495bfbb9b8e535df924a8b01b1a8028b7f368'; \
+		url='https://dl.google.com/go/go1.20.3.src.tar.gz'; \
+		sha256='e447b498cde50215c4f7619e5124b0fc4e25fb5d16ea47271c47f278e7aa763a'; \
 		echo >&2; \
 		echo >&2 "warning: current architecture ($arch) does not have a compatible Go binary release; will be building from source"; \
 		echo >&2; \
 	fi; \
 	\
-	sudo wget -O go.tgz.asc "$url.asc"; \
-	sudo wget -O go.tgz "$url" --progress=dot:giga; \
+	wget -O go.tgz.asc "$url.asc"; \
+	wget -O go.tgz "$url" --progress=dot:giga; \
 	echo "$sha256 *go.tgz" | sha256sum -c -; \
 	\
 # https://github.com/golang/go/issues/14739#issuecomment-324767697
@@ -82,15 +83,21 @@ RUN set -eux; \
 	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys '2F52 8D36 D67B 69ED F998  D857 78BD 6547 3CB3 BD13'; \
 	gpg --batch --verify go.tgz.asc go.tgz; \
 	gpgconf --kill all; \
-	sudo rm -rf "$GNUPGHOME" go.tgz.asc; \
+	rm -rf "$GNUPGHOME" go.tgz.asc; \
 	\
-	sudo tar -C /usr/local -xzf go.tgz; \
-	sudo rm go.tgz; \
+	tar -C /usr/local -xzf go.tgz; \
+	rm go.tgz; \
 	\
 	if [ -n "$build" ]; then \
 		savedAptMark="$(apt-mark showmanual)"; \
-		sudo apt-get update; \
-		sudo apt-get install -y --no-install-recommends golang-go; \
+# add backports for newer go version for bootstrap build: https://github.com/golang/go/issues/44505
+		( \
+			. /etc/os-release; \
+			echo "deb https://deb.debian.org/debian $VERSION_CODENAME-backports main" > /etc/apt/sources.list.d/backports.list; \
+			\
+			apt-get update; \
+			apt-get install -y --no-install-recommends -t "$VERSION_CODENAME-backports" golang-go; \
+		); \
 		\
 		export GOCACHE='/tmp/gocache'; \
 		\
@@ -101,13 +108,13 @@ RUN set -eux; \
 			./make.bash; \
 		); \
 		\
-		sudo apt-mark auto '.*' > /dev/null; \
-		sudo apt-mark manual $savedAptMark > /dev/null; \
-		sudo apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
-		sudo rm -rf /var/lib/apt/lists/*; \
+		apt-mark auto '.*' > /dev/null; \
+		apt-mark manual $savedAptMark > /dev/null; \
+		apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+		rm -rf /var/lib/apt/lists/*; \
 		\
 # remove a few intermediate / bootstrapping files the official binary release tarballs do not contain
-		sudo rm -rf \
+		rm -rf \
 			/usr/local/go/pkg/*/cmd \
 			/usr/local/go/pkg/bootstrap \
 			/usr/local/go/pkg/obj \
@@ -122,7 +129,7 @@ RUN set -eux; \
 
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:$PATH
-RUN sudo mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
+RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 1777 "$GOPATH"
 
 # Install some bazel related tooling
 RUN go install github.com/bazelbuild/buildtools/buildifier@latest && go install github.com/bazelbuild/buildtools/buildozer@latest
