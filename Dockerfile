@@ -10,15 +10,15 @@ RUN sudo apt-get update && sudo apt-get install -qq -y nodejs && sudo npm instal
 # from https://github.com/docker-library/golang/blob/master/1.19/buster/Dockerfile (edited to use sudo)
 # install cgo-related dependencies
 RUN set -eux; \
-	apt-get update; \
-	apt-get install -y --no-install-recommends \
+	sudo apt-get update; \
+	sudo apt-get install -y --no-install-recommends \
 		g++ \
 		gcc \
 		libc6-dev \
 		make \
 		pkg-config \
 	; \
-	rm -rf /var/lib/apt/lists/*
+	sudo rm -rf /var/lib/apt/lists/*
 
 ENV PATH /usr/local/go/bin:$PATH
 
@@ -71,8 +71,8 @@ RUN set -eux; \
 		echo >&2; \
 	fi; \
 	\
-	wget -O go.tgz.asc "$url.asc"; \
-	wget -O go.tgz "$url" --progress=dot:giga; \
+	sudo wget -O go.tgz.asc "$url.asc"; \
+	sudo wget -O go.tgz "$url" --progress=dot:giga; \
 	echo "$sha256 *go.tgz" | sha256sum -c -; \
 	\
 # https://github.com/golang/go/issues/14739#issuecomment-324767697
@@ -83,10 +83,10 @@ RUN set -eux; \
 	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys '2F52 8D36 D67B 69ED F998  D857 78BD 6547 3CB3 BD13'; \
 	gpg --batch --verify go.tgz.asc go.tgz; \
 	gpgconf --kill all; \
-	rm -rf "$GNUPGHOME" go.tgz.asc; \
+	sudo rm -rf "$GNUPGHOME" go.tgz.asc; \
 	\
-	tar -C /usr/local -xzf go.tgz; \
-	rm go.tgz; \
+	sudo tar -C /usr/local -xzf go.tgz; \
+	sudo rm go.tgz; \
 	\
 	if [ -n "$build" ]; then \
 		savedAptMark="$(apt-mark showmanual)"; \
@@ -108,13 +108,13 @@ RUN set -eux; \
 			./make.bash; \
 		); \
 		\
-		apt-mark auto '.*' > /dev/null; \
-		apt-mark manual $savedAptMark > /dev/null; \
-		apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
-		rm -rf /var/lib/apt/lists/*; \
+		sudo apt-mark auto '.*' > /dev/null; \
+		sudo apt-mark manual $savedAptMark > /dev/null; \
+		sudo apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+		sudo rm -rf /var/lib/apt/lists/*; \
 		\
 # remove a few intermediate / bootstrapping files the official binary release tarballs do not contain
-		rm -rf \
+		sudo rm -rf \
 			/usr/local/go/pkg/*/cmd \
 			/usr/local/go/pkg/bootstrap \
 			/usr/local/go/pkg/obj \
@@ -129,7 +129,7 @@ RUN set -eux; \
 
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:$PATH
-RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 1777 "$GOPATH"
+RUN sudo mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 1777 "$GOPATH"
 
 # Install some bazel related tooling
 RUN go install github.com/bazelbuild/buildtools/buildifier@latest && go install github.com/bazelbuild/buildtools/buildozer@latest
