@@ -129,7 +129,7 @@ RUN set -eux; \
 
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:$PATH
-RUN sudo mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 1777 "$GOPATH"
+RUN sudo mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
 
 # Install some bazel related tooling
 RUN go install github.com/bazelbuild/buildtools/buildifier@latest && go install github.com/bazelbuild/buildtools/buildozer@latest
